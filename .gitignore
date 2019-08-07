@@ -9,3 +9,4 @@ installed.txt
 __pycache__/
 .vscode/
 desktop.ini
+packages/

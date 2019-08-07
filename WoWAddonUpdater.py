@@ -1,12 +1,17 @@
 import zipfile, configparser
 from io import BytesIO
-from os.path import isfile, join
+from os.path import isfile, join, realpath, basename, dirname
 from os import listdir
 import shutil
 import tempfile
 import SiteHandler
 import packages.requests as requests
 
+scriptdir = dirname(realpath(__file__))
+print(scriptdir)
+
+configini = join(scriptdir,'config.ini')
+changelogFile = join(scriptdir,'changelog.txt')
 
 def confirmExit():
     input('\nPress the Enter key to exit')
@@ -18,12 +23,12 @@ class AddonUpdater:
         print('')
 
         # Read config file
-        if not isfile('config.ini'):
+        if not isfile(configini):
             print('Failed to read configuration file. Are you sure there is a file called "config.ini"?\n')
             confirmExit()
 
         config = configparser.ConfigParser()
-        config.read('config.ini')
+        config.read(configini)
 
         try:
             self.WOW_ADDON_LOCATION = config['WOW ADDON UPDATER']['WoW Addon Location']
@@ -66,7 +71,7 @@ class AddonUpdater:
                 current_node.append(currentVersion)
                 installedVersion = self.getInstalledVersion(line, subfolder)
                 if not currentVersion == installedVersion:
-                    print('Installing/updating addon: ' + addonName + ' to version: ' + currentVersion + '\n')
+                    print('Installing/updating addon: ' + addonName + ' to version: ' + currentVersion)
                     ziploc = SiteHandler.findZiploc(line)
                     install_success = False
                     install_success = self.getAddon(ziploc, subfolder)
@@ -74,7 +79,7 @@ class AddonUpdater:
                     if install_success and (currentVersion is not ''):
                         self.setInstalledVersion(line, subfolder, currentVersion)
                 else:
-                    print(addonName + ' version ' + currentVersion + ' is up to date.\n')
+                    print(addonName + ' version ' + currentVersion + ' is up to date.')
                     current_node.append("Up to date")
                 uberlist.append(current_node)
         if self.AUTO_CLOSE == 'False':
@@ -139,9 +144,9 @@ class AddonUpdater:
 
 
 def main():
-    if(isfile('changelog.txt')):
+    if(isfile(changelogFile)):
         downloadedChangelog = requests.get('https://raw.githubusercontent.com/kuhnerdm/wow-addon-updater/master/changelog.txt').text.split('\n')
-        with open('changelog.txt') as cl:
+        with open(changelogFile) as cl:
             presentChangelog = cl.readlines()
             for i in range(len(presentChangelog)):
                 presentChangelog[i] = presentChangelog[i].strip('\n')

@@ -85,11 +85,12 @@ def curse(addonpage):
     if '/datastore' in addonpage:
         return curseDatastore(addonpage)
     try:
+        addonName = addonpage[38:]
         page = requests.get(addonpage + '/download')
         page.raise_for_status()   # Raise an exception for HTTP errors
         contentString = str(page.content)
-        indexOfZiploc = contentString.find('download__link') + 22  # Will be the index of the first char of the url
-        endQuote = contentString.find('"', indexOfZiploc)  # Will be the index of the ending quote after the url
+        indexOfZiploc = contentString.find('<a href="/wow/addons/{0}/download/'.format(addonName)) + 9  # Will be the index of the first char of the url
+        endQuote = contentString.find('">here', indexOfZiploc)  # Will be the index of the ending quote after the url
         return 'https://www.curseforge.com' + contentString[indexOfZiploc:endQuote]
     except Exception:
         print('Failed to find downloadable zip file for addon. Skipping...\n')
@@ -145,8 +146,9 @@ def getCurseVersion(addonpage):
         page = requests.get(addonpage + '/files')
         page.raise_for_status()   # Raise an exception for HTTP errors
         contentString = str(page.content)
-        indexOfVer = contentString.find('file__name full') + 17  # first char of the version string
-        endTag = contentString.find('</span>', indexOfVer)  # ending tag after the version string
+        startindex = contentString.find('<a data-action="file-link"')
+        indexOfVer = contentString.find('>',startindex) +1 # first char of the version string
+        endTag = contentString.find('</a>', indexOfVer)  # ending tag after the version string
         return contentString[indexOfVer:endTag].strip()
     except Exception:
         print('Failed to find version number for: ' + addonpage)
